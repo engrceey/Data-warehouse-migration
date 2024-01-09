@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.Arrays;
@@ -21,7 +20,7 @@ public class AppExceptionHandler {
     @ExceptionHandler(value = {CustomException.class})
     public ResponseEntity<ApiResponse<?>> handleCustomException(CustomException exception) {
         log.error("ERROR:: exception occurred with Message :: {} ::", exception.getMessage());
-        HttpStatus status = HttpStatus.BAD_REQUEST;
+        HttpStatus status = exception.getStatus() == null ?  HttpStatus.BAD_REQUEST : exception.getStatus();
         ApiResponse<Object> response = ApiResponse.builder()
                 .responseStatus(false)
                 .responseCode("09")

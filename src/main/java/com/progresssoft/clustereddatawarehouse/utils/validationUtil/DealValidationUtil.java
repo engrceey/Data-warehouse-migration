@@ -17,7 +17,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,32 +45,39 @@ public class DealValidationUtil {
     }
 
 
-    public List<DealEntity> extractDealRecordsToList(InputStream csvFile) {
+    public List<DealEntity> extractUniqueDealRecordsToListByDealId(InputStream csvFile) {
         try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(csvFile, StandardCharsets.UTF_8));
              CSVParser csvParser = new CSVParser(fileReader,
                      CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());) {
 
-            List<DealEntity> csvList = new ArrayList<>();
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
-
             DateTimeFormatter formatter = getDateTimeFormatter();
+
+            /**
+             * Using a map to store dealId, and it's record to manage duplicates
+             */
+            HashMap<String, DealEntity> dealMap = new HashMap<>();
             for (CSVRecord csvRecord : csvRecords) {
-                log.info("See csvRecord :: {}", csvRecord);
-                log.info("See dealId :: {}", csvRecord.get(DEAL_ID.getName()));
-                if (doesDealRecordExist(csvRecord.get(DEAL_ID.getName()))) {
-                    log.info("See dealId :: {}", csvRecord.get(DEAL_ID.getName()));
+
+                final String dealId = csvRecord.get(DEAL_ID.getName());
+                final double dealAmount = Double.parseDouble(csvRecord.get(DEAL_AMOUNT.getName()));
+                final String fromCurrency = csvRecord.get(FROM_CURRENCY.getName());
+                final String toCurrency = csvRecord.get(TO_CURRENCY.getName());
+                final LocalDateTime dealTimeStamp = LocalDateTime.parse(csvRecord.get(DEAL_TIMESTAMP.getName()), formatter);
+
+                if (dealMap.containsKey(dealId)) {
                     continue;
                 }
                 DealEntity deals = DealEntity.builder()
-                        .dealAmount(Double.parseDouble(csvRecord.get(DEAL_AMOUNT.getName())))
-                        .fromCurrency(csvRecord.get(FROM_CURRENCY.getName()))
-                        .toCurrency(csvRecord.get(TO_CURRENCY.getName()))
-                        .dealId(csvRecord.get(DEAL_ID.getName()))
-                        .dealTimestamp(LocalDateTime.parse(csvRecord.get(DEAL_TIMESTAMP.getName()), formatter))
+                        .dealAmount(dealAmount)
+                        .fromCurrency(fromCurrency)
+                        .toCurrency(toCurrency)
+                        .dealId(dealId)
+                        .dealTimestamp(dealTimeStamp)
                         .build();
-                csvList.add(deals);
+                dealMap.put(dealId, deals);
             }
-            return csvList;
+            return dealMap.values().stream().toList();
         } catch (IOException e) {
             log.error("Exception with message :: {}", e.getMessage());
             throw new CustomException("fail to parse CSV file: " + e.getMessage());

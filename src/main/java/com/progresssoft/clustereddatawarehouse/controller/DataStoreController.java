@@ -7,6 +7,7 @@ import com.progresssoft.clustereddatawarehouse.service.DealStoreService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -56,6 +57,25 @@ public class DataStoreController {
     public ResponseEntity<ApiResponse<?>> migrateDataFromRest(@Valid @RequestBody DealRecordRequestDto requestDto) {
         log.info("request to save Deal from API :: {} ::", requestDto.dealId());
         return ResponseEntity.ok(dealStoreService.storeApiRequestDeals(requestDto));
+    }
+
+    /**
+     * the findAllDeals endpoint
+     *
+     * @param page to fetch
+     * @param size to fetch
+     * @return Page of deals
+     */
+    @Tag(
+            name = "fetch Deal records",
+            description = "this Api fetch Deal records")
+    @GetMapping(path = "/fetch-deal-records")
+    public ResponseEntity<Page<?>> fetchDeals(
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size
+    ) {
+        log.info("request fetch deals");
+        return ResponseEntity.ok(dealStoreService.findAllDeals(page, size));
     }
 
 }

@@ -9,6 +9,10 @@ import com.progresssoft.clustereddatawarehouse.service.DealStoreService;
 import com.progresssoft.clustereddatawarehouse.utils.validationUtil.DealValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,6 +32,7 @@ public class DealStoreServiceImpl implements DealStoreService {
 
     /**
      * service to store Table request
+     *
      * @param file Table(csv) data to persist
      * @return ApiResponse<String>
      */
@@ -37,7 +42,7 @@ public class DealStoreServiceImpl implements DealStoreService {
         if (!dealValidationUtil.hasCSVFormat(file)) {
             throw new CustomException("Select a valid csv file");
         }
-        var records = dealValidationUtil.extractDealRecordsToList(fileToInputStream(file));
+        var records = dealValidationUtil.extractUniqueDealRecordsToListByDealId(fileToInputStream(file));
         dealRepository.saveAll(records);
         return ApiResponse.<String>builder()
                 .responseMessage("Saved Fx Deals")
@@ -45,15 +50,17 @@ public class DealStoreServiceImpl implements DealStoreService {
     }
 
     InputStream fileToInputStream(MultipartFile file) {
-        try{
+        try {
             return file.getInputStream();
         } catch (Exception exception) {
             throw new CustomException("file error, check and try again");
         }
 
     }
+
     /**
      * service to store json request
+     *
      * @param request json REST request
      * @return ApiResponse<String>
      */
@@ -79,6 +86,23 @@ public class DealStoreServiceImpl implements DealStoreService {
                 .responseCode("00")
                 .responseStatus(true)
                 .build();
+    }
+
+    /**
+     * the findAllDeals
+     *
+     * @param page to fetch
+     * @param size to fetch
+     * @return Page of deals
+     */
+    @Override
+    public Page<DealEntity> findAllDeals(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        var deals = dealRepository.findAll(pageable);
+        if (deals.hasContent()) {
+            return deals;
+        }
+        throw new CustomException("No Deals Record available", HttpStatus.NOT_FOUND);
     }
 
 }
