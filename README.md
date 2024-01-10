@@ -35,3 +35,17 @@ JDBC_DATASOURCE_PASSWORD = zurum-mysql
 * Swagger Docs
 * Docker
 * CSV file reader (apache.commons csv)
+
+#### Images
+
+
+![Screenshot 2024-01-10 at 00 54 55 (2)](https://github.com/engrceey/Data-warehouse-migration/assets/50442301/a415ccd3-aafb-4c55-b3a5-00fd635b219f)
+
+
+![Screenshot 2024-01-10 at 00 58 26 (2)](https://github.com/engrceey/Data-warehouse-migration/assets/50442301/f7d72c54-f6fc-437f-b348-e09eba135d8d)
+
+![Uploading Screenshot 2024-01-10 at 00.58.44 (2).png…]()
+
+
+
+
